@@ -75,13 +75,14 @@ def run_batch(paths, log=print, out_ext=".png", both=False):
 
 def main():
     argv_files = [a for a in sys.argv[1:] if not a.startswith("-")]
+    output_bmp = "--bmp" in sys.argv[1:]
     if argv_files:
         # 拖放模式：转换完弹窗确认
         import tkinter as tk
         from tkinter import messagebox
 
         results = []
-        run_batch(argv_files, log=results.append)
+        run_batch(argv_files, log=results.append, both=output_bmp)
         root = tk.Tk()
         root.withdraw()
         messagebox.showinfo(
@@ -102,6 +103,7 @@ def main():
     txt.pack(fill="both", expand=True, padx=8, pady=8)
     bar = ttk.Frame(root)
     bar.pack(fill="x", padx=8, pady=(0, 8))
+    output_bmp_var = tk.BooleanVar(value=False)
 
     def log(m):
         txt.insert("end", m + "\n")
@@ -114,15 +116,18 @@ def main():
             filetypes=[("TIFF", "*.tif *.tiff"), ("所有文件", "*.*")],
         )
         if fs:
-            run_batch(list(fs), log=log)
+            run_batch(list(fs), log=log, both=output_bmp_var.get())
 
     def pick_dir():
         d = filedialog.askdirectory(title="选择文件夹（含子文件夹）")
         if d:
-            run_batch([d], log=log)
+            run_batch([d], log=log, both=output_bmp_var.get())
 
     ttk.Button(bar, text="选择文件…", command=pick_files).pack(side="left")
     ttk.Button(bar, text="选择文件夹…", command=pick_dir).pack(side="left", padx=8)
+    ttk.Checkbutton(
+        bar, text="同时输出 BMP", variable=output_bmp_var
+    ).pack(side="left")
     ttk.Button(bar, text="清空日志", command=lambda: txt.delete("1.0", "end")).pack(
         side="left"
     )
